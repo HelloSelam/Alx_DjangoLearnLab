@@ -4,7 +4,7 @@ from .models import Library
 from .models import Book
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
+from django.contrib.auth.decorators import permission_required, login_required, user_passes_test
 
 # Function-based view: list all books
 def list_books(request):
