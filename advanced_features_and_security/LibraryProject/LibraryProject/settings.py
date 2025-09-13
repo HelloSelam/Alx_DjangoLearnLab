@@ -23,7 +23,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-3n)bzw1yf=yoe*)9o%w19^-b5se!7i1ye!rc-s&(u3q&2bfwf$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False  # must be False in production
+
+# Extra security headers
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = "DENY"
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Secure cookies (work only if HTTPS is enabled in production)
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# Example Content Security Policy via django-csp (if installed)
+# Add to INSTALLED_APPS:
+# 'csp',
+
+# Example CSP settings:
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'", 'https://fonts.googleapis.com')
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_IMG_SRC = ("'self'", "data:")
 
 ALLOWED_HOSTS = []
 
@@ -128,3 +147,12 @@ LOGIN_REDIRECT_URL = "list_books"
 LOGOUT_REDIRECT_URL = "login"
 
 AUTH_USER_MODEL = "bookshelf.CustomUser"
+
+INSTALLED_APPS += ["csp"]
+
+MIDDLEWARE += ["csp.middleware.CSPMiddleware"]
+
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'", 'https://fonts.googleapis.com')
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_IMG_SRC = ("'self'", "data:")
