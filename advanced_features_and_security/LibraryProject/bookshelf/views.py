@@ -40,6 +40,18 @@ def book_delete(request, pk):
     book.delete()
     return redirect("book_list")
 
+
+def example_form_view(request):
+    if request.method == "POST":
+        form = ExampleForm(request.POST)
+        if form.is_valid():
+            # Normally handle form.cleaned_data here
+            return render(request, "bookshelf/form_example.html", {"form": form, "success": True})
+    else:
+        form = ExampleForm()
+    return render(request, "bookshelf/form_example.html", {"form": form})
+
+
 def search_books(request):
     query = request.GET.get("q")
     books = []
