@@ -174,3 +174,6 @@ CSRF_COOKIE_SECURE = True
 X_FRAME_OPTIONS = "DENY"  # prevent clickjacking
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# Recognize HTTPS requests behind a proxy/load balancer
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
