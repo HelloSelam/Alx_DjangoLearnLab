@@ -1,7 +1,7 @@
 # blog/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import views as auth_views
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, UserUpdateForm, ProfileUpdateForm
@@ -13,7 +13,8 @@ from django.views.generic import (
     UpdateView,
     DeleteView
 )
-from .models import Post
+from .models import Post, Comment
+from .forms import CommentForm
 
 
 def register_view(request):
@@ -53,6 +54,27 @@ def profile_view(request):
     }
     return render(request, 'blog/profile.html', context)
 
+def add_comment(request, post_pk):
+    post = get_object_or_404(Post, pk=post_pk)
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.author = request.user
+            comment.save()
+            messages.success(request, "Your comment has been posted.")
+            return redirect('post-detail', pk=post.pk)
+        else:
+            # If invalid, re-render the post detail with the form errors
+            context = {
+                'object': post,
+                'comment_form': form,
+                'comments': post.comments.all()
+            }
+            return render(request, 'blog/post_detail.html', context)
+    return redirect('post-detail', pk=post.pk)
+
 # List all posts
 class PostListView(ListView):
     model = Post
@@ -66,6 +88,12 @@ class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['comment_form'] = CommentForm()
+        # comments accessible via object.comments due to related_name
+        context['comments'] = self.object.comments.all()
+        return context
 
 # Create a new post
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -102,3 +130,32 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+    
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Comment
+    template_name = 'blog/comment_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
