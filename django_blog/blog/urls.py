@@ -4,7 +4,7 @@ from . import views
 from django.contrib.auth import views as auth_views
 from .views import (
     PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView,
-    add_comment, CommentUpdateView, CommentDeleteView
+    CommentCreateView, CommentUpdateView, CommentDeleteView
 )
 
 app_name = 'blog'
@@ -21,7 +21,7 @@ urlpatterns = [
     path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post-delete'),
 
     # Comments
-    path('post/<int:post_pk>/comments/new/', add_comment, name='comment-add'),
+    path('post/<int:post_pk>/comments/new/', CommentCreateView.as_view(), name='comment-create'),
     path('comment/<int:pk>/edit/', CommentUpdateView.as_view(), name='comment-edit'),
     path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment-delete'),
 ]
